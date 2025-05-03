@@ -9,3 +9,6 @@ copy the path
 add it to the code
 
 profit
+
+
+or you could just use the relative path

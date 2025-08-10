@@ -8,7 +8,11 @@ copy the path
 
 add it to the code
 
-profit
+and run it
+it should work
+
 
 
 or you could just use the relative path
+
+

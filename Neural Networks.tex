@@ -1,0 +1,494 @@
+\documentclass{beamer}
+\setbeamertemplate{footline}[frame number]
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm} % Required for boldface when the usual textbf method fails
+\usepackage[most]{tcolorbox}
+\usepackage{tikz,lipsum}
+\usepackage{xcolor}
+\usepackage{animate}
+
+
+
+\title{An Introduction to Neural networks}
+\author{Yi Shen Lim and Aadvik Mohta}
+\date{6 May 2025}
+
+
+
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Overview}
+\tableofcontents
+
+
+\end{frame}
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= The Dot Product]
+We say the dot product of two 3D column vectors is $$\begin{pmatrix}
+    a_1\\
+    b_1\\
+    c_1
+\end{pmatrix}\cdot\begin{pmatrix}
+    a_2\\
+    b_2\\
+    c_2
+\end{pmatrix}=a_1a_2+b_1b_2+c_1c_2$$ This result can be generalised for column vectors of any dimension. 
+\end{tcolorbox}
+\end{frame}
+\section{Mathematical Prerequisites}
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Matrices]
+We can consider an array of numbers represented in the form of a matrix $$\begin{pmatrix}
+    a_{11}&a_{12}&a_{13}&\dots&a_{1n}\\
+    a_{21}&a_{22}&a_{23}&\dots&a_{2n}\\
+    \vdots&\vdots&\vdots&\ddots&\vdots\\
+    a_{m1}&a_{m2}&a_{m3}&\dots&a_{mn}
+\end{pmatrix}$$
+This matrix has $m$ rows and $n$ columns, and we call it an $m\times n$ matrix. 
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Matrix Multiplication]
+
+$$\textbf{AB}=\\ \begin{pmatrix}
+    a_{11}&a_{12}&\dots&a_{1n}\\
+    a_{21}&a_{22}&\dots&a_{2n}\\
+
+    \vdots&\vdots&\ddots&\vdots\\
+
+    a_{m1}&a_{m2}&\dots&a_{mn}
+\end{pmatrix}\begin{pmatrix}
+    b_{11}&b_{12}&\dots&b_{1r}\\
+    b_{21}&b_{22}&\dots&b_{2r}\\
+    
+    \vdots&\vdots&\ddots&\vdots\\
+
+    b_{n1}&b_{n2}&\dots&b_{nr}
+\end{pmatrix}$$
+Note that the resultant matrix will be an $m\times r$ matrix, and that to find the $ij$-entry of this matrix we take the dot product of the $i$-th row of the first matrix with the $j$-th column of the second matrix.
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=orange!5!white,colframe=orange!75!black,title=Exercise 1]
+If $\textbf{A}=\begin{pmatrix}
+    1&2&3\\
+    2&4&5\\
+    2&1&4
+\end{pmatrix}$ and $\textbf{B}=\begin{pmatrix}
+    1\\
+    2\\
+    3
+\end{pmatrix}$, then what is $\textbf{AB}$?
+\end{tcolorbox}
+\begin{tcolorbox}
+[colback=orange!5!white,colframe=orange!75!black,title=Exercise 2]
+What is the condition for us to satisfy in order to multiply two matrices together?
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title = Gradient]
+In secondary school, we learned that the gradient of a curve at a point is basically the gradient of tangent to the curve at that point. This is nice in the 2D-plane, but the definition of a gradient for functions of several variables is different, because such functions are not simply defined in 2D.
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title = Partial Differentiation]
+Say we have a function $z=f(x,y,\dots)$ of several variables. Consider holding the other variables as constants and leaving $x$ as the only `remaining' variable, before differentiating with respect to $x$. We repeat this process again and again for the other variables until we get the respective partial derivatives of the function with respect to each variable. Such partial derivatives are notated as $f_x,$,$f_y$,$f_z$ etc.
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Mathematical Prerequisites}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title = The Gradient Vector]
+Having obtained the partial derivatives of our function of several variables, we can finally get the ``gradient" of this function. 
+\[\nabla f=\begin{pmatrix}
+    f_x\\
+    f_y\\
+    \vdots\\
+    f_?
+\end{pmatrix}\]
+This allows us to generalise the idea of a "gradient" to several dimensions. 
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\section{Formulation of Neural Networks}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white ,colframe=blue!75!black,title=Biological Neuron vs Artificial Neuron]
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Screenshot 2025-05-02 155944.png}
+\end{figure}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=Mathematical Formulation of Neural Networks]
+For each neuron in a layer, we have:
+$$y=f(b(1)+w_1x_1+w_2x_2+\dots+w_nx_n)$$
+Let us now break down what this means:\\
+\begin{enumerate}
+    \item $x_1,x_2,\dots,x_n$ are inputs to the neuron
+    \item $w_1,w_2,\dots,w_n$ are weights to each input. 
+    \item $b$ is the bias.
+    \item $f$ is the activation function.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=Further Clarification]
+\begin{enumerate}
+    \item A weight is basically a measure of how important each input is to a neuron's output. Think of a student's score in some subjects. Some subjects(inputs) are more important(higher weights) then other subjects(lower weights). 
+    \item A bias is a parameter allowing the model to shift the activation function. Intuitively, consider the line $y=mx+b$. The intercept $b$ lets the line move up or down, just like the bias lets a neuron adjust its output baseline.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+    \frametitle{Formulation of Neural Networks}
+    \includegraphics[width=\textwidth,keepaspectratio]{NNarchitecture.png}
+\end{frame}
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=orange!5!white,colframe=orange!75!black,title=Exercise 3]
+Say we have $m$ neurons connected to $n$ inputs. For the $j$-th neuron, each input $x_i$ is scaled by the weight $w_{ji}$ and a bias $b_j$ is added:
+$$b_j+w_{j1}x_1+w_{j2}x_2+\dots w_{jn}x_n$$
+So the question is, what is the corresponding expression for $n$ neurons?
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=red!5!white,colframe=red!75!black,title=Answer to Exercise 3]
+We can represent the list of inputs as 
+$$\begin{pmatrix}
+    x_1\\
+    x_2\\
+    \vdots\\
+    x_n
+\end{pmatrix}$$
+So for $n$ neurons, we have
+$$\begin{pmatrix}
+    b_1+w_{11}x_1+w_{12}x_2+\dots+w_{1n}x_n\\
+    b_2+w_{21}x_1+w_{22}x_2+\dots+w_{2n}x_n\\
+    \vdots\\
+    b_m+w_{m1}x_1+w_{m2}x_2+\dots+w_{mn}x_n
+\end{pmatrix}=\textbf{Wx}+\textbf{b}$$
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=red!5!white,colframe=red!75!black,title= Remark on Answer to Exercise 3]
+We can visualise $\textbf{Wx}+\textbf{b}$ as scaling(stretching/squashing) and translation(shifting).
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=A Layer of the Neural Network]
+A layer of a neural netowrk can thus be written as 
+\begin{equation}
+    \mathbf{h}^{(l)} = f\bigl(\mathbf{W}^{(l)}\mathbf{h}^{(l-1)}+\mathbf{b}^{(l)}\bigr)
+\end{equation}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Formulation of Neural Networks}
+\begin{figure}
+    \centering
+    \animategraphics[width=0.65\textwidth, loop, autoplay]{8.1}%frame rate
+    {layer/1layer-}%path to figures
+    {0}%start index
+    {80}%end index
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Loss Function]
+A loss function is a mathematical formula that tells a machine learning model how wrong its predictions are. It measures the difference between the predicted output and the true(actual) value. 
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\section{Gradient Descent}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=orange!5!white,colframe=orange!75!black,title= An Example of a Loss Function]
+Say we want to carry out some good old classification between two classes. The Binary Cross-Entropy Loss Function is:
+$$\text{Loss}=-[y\cdot\log(\hat y)+(1-y)\cdot\log(1-\hat y)]$$
+Where $y$ is the true label(0 or 1) and $\hat y$ is the predicted probability that the instance belongs to class 1.
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=orange!5!white,colframe=orange!75!black,title=Example Calculation 1]
+Let $y=1$ and $\hat y=0.9$. Then the loss calculation is given by
+$$\text{Loss}=-[y\cdot\log(\hat y)+(1-y)\cdot\log(1-\hat y)]=-\log(0.9)=0.1054$$
+\end{tcolorbox}
+\begin{tcolorbox}
+[colback=orange!5!white,colframe=orange!75!black,title= Example Calculation 2]
+Let $y=1$ and $\hat y=0.1$. Then the loss calculation is given by
+$$\text{Loss}=-[y\cdot\log(\hat y)+(1-y)\cdot\log(1-\hat y)]=-\log(0.1)=2.3026$$
+\end{tcolorbox}
+The loss is higher when the model is confident but wrong, and lower when the model is confident and correct.
+\end{frame}
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title={Goal of Gradient Descent}]
+The goal of gradient descent is to find the best parameters(such as weights and biases) that minimise the error between predictions and actual results.
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=An Analogy for Gradient Descent]
+Think of the loss function as a hilly landscape, which tells you how $\textit{wrong}$ the model is. A peak on the hill indicates a big error, while a valley indicates a low error.
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= How Gradient Descent Works]
+\begin{enumerate}
+    \item Start somewhere on the hill(random weights).
+    \item Find the gradient of the hill at that point as it signifies which direction is downhill.
+    \item Take a small step in that direction.
+    \item Repeat this process until we have reached a valley(YIPPEE!!!!).
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Mathematical Formulation of Gradient Descent]
+$$x_{n+1}=x_n-\alpha f'(x_n)$$
+where $\alpha$ is the step size and $f'(x_n)$ is the steepness.
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Problems Associated with Gradient Descent]
+\begin{enumerate}
+    \item The value of $\alpha$ chosen is too small.
+    \item The value of $\alpha$ chosen is too large.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Gradient Descent}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Problems Associated with Gradient Descent]
+The algorithm does not necessarily know if it has reached the $\textbf{global}$ minimum, as opposed to simply reaching a $\textbf{local}$ minimum. Consider the following graph:
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{Screenshot 2025-05-02 193517.png}
+\end{figure}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Convolution}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= A Simple Question]
+Consider a 2D image which can be represented as a matrix. Since a neural network can only accept a 1D vector as an input, how can we give the neural network an input that shows the positional information of the pixels?
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\section{Convolution}
+\frametitle{Convolution}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=The Solution]
+The solution to this question lies in a mathematical operation called $\textbf{convolution}$!
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Convolution}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=Why Use a Convolution?]
+A convolution turns a small patch of an image into a single value in a feature map, helping detect patterns like edges or textures
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Convolution}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=Definition of a Convolution]
+A convolution is a mathematical operation that combines two functions(or matrices) to produce a third. In the context of image processing, it involves applying a small matrix, the kernel/filter, to an input image to produce an output image that highlights certain features such as edges, textures and patterns.
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Convolution}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Visualisation of Convolution]
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{Screenshot 2025-05-02 233414.png}
+\end{figure}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Backpropagation}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Why Backpropagation?]
+Backpropagation is how a neural network learns. It helps adjust the weights in the network so the connections get more accurate over time. \\
+\\
+The goal of backpropagation is to minimise the loss by tweaking the weights using gradient descent. Basically, it is a tool to find the optimal combination of weights in the network.
+\end{tcolorbox} 
+\end{frame}
+\begin{frame}
+\section{Backpropagation}
+\frametitle{Backpropagation}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=How Backpropagation Works]
+Consider a simple 3-layer neural network.
+$$\text{Input Layer}\rightarrow\text{Hidden Layer}\rightarrow\text{Output Layer}$$
+For this neural network, we do the following 3 steps:
+\begin{enumerate}
+    \item Forward Pass
+    \item Compute Loss
+    \item Backward Pass(Backpropagation!!!)
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Backpropagation}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Forward Pass and Computing Loss]
+\begin{enumerate}
+    \item Inputs pass through the network.
+    \item Each neuron applies weights, sums inputs, applies activation, and passes values forward.
+    \item Final output is compared with the true value to compute loss.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Backpropagation}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=Backward Pass(Backpropagation)]
+\begin{enumerate}
+    \item Calculate how much each weight contributed to the error.
+    \item Use the chain rule to propagate the error backwards from output to input.
+    \item Update weights using gradient descent.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Backpropagation}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Visualising Backpropagation]
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Backpropagation Diagram.png}
+\end{figure}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Convolutional Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= What is a Convolutional Neural Network(CNN)?]
+A CNN is a type of neural network that is especially good at processing images. Simply speaking, a CNN is a fancy visual pattern detector.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Screenshot 2025-05-03 001852.png}
+\end{figure}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\section{Convolutional Neural Networks}
+\frametitle{Convolutional Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= How CNNs Work]
+\begin{enumerate}
+    \item The network uses filters that slide over the image to detect features(this is like in convolutions).
+    \item The filters ``shrink" the image by only keeping the ``essence" of the area, allowing the network to focus on major features.
+    \item After extracting features, the CNN uses regular neural network layers to interpret those features, and makes a prediction.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Convolutional Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title=Making Sense of How Neural Networks Learn]
+Imagine you are identifying an animal in a picture.\\
+\begin{enumerate}
+    \item You first notice shapes(ears,tails,whiskers etc).
+    \item You combine those shapes into higher-order features(face of a cat).
+    \item You conclude what the animal is.
+\end{enumerate}
+$\textbf{This is exactly how a CNN learns}.$
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Handwritten Digit Recognition}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Schematic Flow of Digit Recognition by CNNs]
+This is perhaps the most famous application of Convolutional Neural Networks.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Screenshot 2025-05-03 003657.png}
+\end{figure}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\section[Handwritten Digit Recognition]{Handwritten Digit Recognition}
+\frametitle{Handwritten Digit Recognition}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black, title = Handwritten Digit Recognition]
+Let's now try a Python simulation of a simple CNN!
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\section{Advantages and Disadvantages of Neural Networks}
+\frametitle{Advantages and Disadvantages of Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Advantages of Neural Networks]
+\begin{enumerate}
+    \item They are good at identifying patterns in data(well, obviously).
+    \item By utilising large datasets, neural networks can learn patterns that more traditional models(such as linear regression and decision trees) cannot detect.
+    \item Neural networks require less programming effort as compared to building other models from scratch. One just needs a pre-trained model which can be adapted for one's needs.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\begin{frame}
+\frametitle{Advantages and Disadvantages of Neural Networks}
+\begin{tcolorbox}
+[colback=blue!5!white,colframe=blue!75!black,title= Disadvantages of Neural Networks]
+\begin{enumerate}
+    \item It can be difficult or impossible to explain the decisions made by neural networks due to their ``black-box" nature. Because of this, researchers may be unaware of important features present in their data being learned by the model.
+    \item Neural networks are extremely data-hungry because they rely on large amounts of data for training and optimisation of the models.
+\end{enumerate}
+\end{tcolorbox}
+\end{frame}
+\end{document}
+
+
